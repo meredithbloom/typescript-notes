@@ -492,3 +492,118 @@ function downloadStatus(status: Status) {
 }
 
 downloadStatus('idle');
+
+
+// TYPE NARROWING
+
+// TYPE GUARDS - a way that typescript can narrow a type by using a conditional check for if a variable is a certain type
+
+function formatStatistic(stat: string | number) {
+  if (typeof stat === 'number') {
+      return stat.toFixed(2);
+  } else if (typeof stat === 'string') {
+    return stat.toUpperCase();
+  }
+}
+
+console.log(formatStatistic('Win'));
+console.log(formatStatistic(0.364));
+
+// Using 'IN' with type guards
+// the 'in' operator checks if a property exists on an object itself or anywhere within its prototype chain
+// this works for more specific type narrowing than just typeof
+
+type Cat = {
+  name: string;
+  run: () => string;
+}
+
+type Fish = {
+  name: string;
+  swim: () => string;
+}
+
+const siameseCat = { 
+  name: 'Proxie', 
+  run: () => 'pitter pat'
+}
+
+const bettaFish = { 
+  name: 'Neptune', 
+  swim: () => 'bubble blub'
+}
+
+// two separate 'if' statements
+function move(pet: Cat | Fish) {
+  if ('run' in pet) {
+    return pet.run();
+  } 
+  if ('swim' in pet) {
+    return pet.swim();
+  }
+}
+
+console.log(move(siameseCat))
+
+// Narrowing with ELSE
+// typescript can recognize the else block of an if/else statement as being the opposite type guard check of the 'if' statement's type guard check
+
+function formatPadding(padding: string | number) {
+  if (typeof padding === 'string') {
+    return padding.toLowerCase();
+  } else {
+    return `${padding}px`;
+  }
+}
+
+// more complex example 
+
+type Pasta = {
+  menuName: string;
+  boil: () => string;
+}
+
+type Meat = {
+  menuName: string;
+  panFry: () => string;
+}
+
+const fettuccine = {
+  menuName: 'Fettuccine',
+  boil: () => 'Heat water to 212 degrees',
+}
+
+const steak = {
+  menuName: 'New York Strip Steak',
+  panFry: () => 'Heat oil to 350 degrees',
+}
+
+function prepareEntree(entree: Pasta | Meat) {
+  if ('boil' in entree) {
+    return entree.boil();
+  } else {
+    return entree.panFry();
+  }
+}
+
+console.log(prepareEntree(fettuccine));
+
+// NARROWING AFTER A TYPE GUARD
+// typescript can type narrow without an else statement, provided that there is a return statement within the type guard
+
+type Tea = {
+  steep: () => string;
+}
+
+type Coffee = {
+  pourOver: () => string;
+} 
+
+function brew(beverage: Coffee | Tea) {
+  if ('steep' in beverage) {
+    return beverage.steep();
+  }
+
+  return beverage.pourOver();
+}
+
