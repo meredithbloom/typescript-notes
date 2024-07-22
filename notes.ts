@@ -607,3 +607,186 @@ function brew(beverage: Coffee | Tea) {
   return beverage.pourOver();
 }
 
+// ADVANCED OBJECT TYPES
+
+// Interfaces and Types
+// interfaces are a way to define a type in typescript
+
+type MailType = {
+  postagePrice: number;
+  address: string;
+}
+
+// very minor syntactical difference - interface does not require an equal sign between the interface name and the object
+// functionality is identical
+// interface can be only be used to type OBJECTS, where 'type' can be used to type objects, primitives, and more
+interface Mail {
+  postagePrice: number;
+  address: string;
+}
+
+// example 
+interface Run {
+  miles: number;
+}
+
+function updateRunGoal(run: Run) {
+  console.log(`
+Miles left:       ${50 - run.miles}
+Percent of goal:  ${(run.miles / 50) * 100}% complete
+  `)
+}
+
+updateRunGoal({
+  miles: 5,
+})
+
+// INTERFACES AND CLASSES
+
+// interface keyword is especially good for adding types to a class (since it is constrained to typed objects)
+// typescript give sus the ability to apply a type to an object/class with the 'implements' keyword
+
+interface Robot {
+  identify: (id: number) => void;
+}
+
+class OneSeries implements Robot {
+  identify(id: number) {
+    console.log(`beep! I'm ${id.toFixed(2)}.`);
+  }
+
+  answerQuestion() {
+    console.log('42!');
+  }
+}
+
+// DEEP TYPES - nested methods and properties
+
+interface Directory {
+  addFile: (name: string) => void;
+  config: Config;
+}
+
+interface DefaultConfig {
+  encoding: string,
+  permissions: string
+}
+
+interface Config {
+  default: DefaultConfig
+}
+
+class DesktopDirectory implements Directory {
+  config = {
+    default: {
+      encoding: 'utf-8',
+      permissions: 'drw-rw-rw-',
+    }
+  }
+
+  addFile(name: string) {
+    console.log(`Adding file: ${name}`);
+  }
+
+  showPreview(name: string) {
+    console.log(`Opening preview of file: ${name}`);
+  }
+}
+
+const Desktop = new DesktopDirectory();
+
+console.log(Desktop.config);
+
+// COMPOSED TYPES
+
+// deeper nested data can become unwieldy to write and read - we want to avoid more than 1-2 levels of nesting
+
+// very nested
+// interface About {
+//   general: {
+//     id: number;
+//     name: string;
+//     version: {
+//       versionNumber: number;
+//     }
+//   }
+// }
+
+// VERSUS
+
+interface About {
+  general: General;
+}
+
+interface General {
+  id: number;
+  name: string;
+  version: Version;
+}
+
+interface Version {
+  versionNumber: number;
+}
+
+// EXTENDING INTERFACES
+
+// 'extends' keyword copies all the type members from one type into another type
+
+interface Shape {
+  color: string;
+}
+
+interface Square extends Shape {
+  sideLength: number;
+}
+
+const mySquare: Square = {sideLength: 10, color: 'blue'};
+
+// INDEX SIGNATURES
+// when we don't know the names of the properties of an object, we can use an index signature to define the type of the object in general
+// i.e. when we get information from an outside data source like an API
+
+// import { getBudgetAsync } from './api';
+
+// interface Budget {
+//   [category: string]: number;
+// }
+
+// async function getBudget() {
+//   const result: Budget = await getBudgetAsync();
+//   console.log(result);
+// }
+
+// getBudget();
+
+
+
+// OPTIONAL TYPE MEMBERS
+
+interface UserNameOptions {
+  username: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+function getUserName(options: UserNameOptions) {
+  if (options.firstName && options.lastName) {
+    return console.log(`${options.firstName} ${options.lastName}`);
+  }
+
+  return console.log(options.username);
+}
+
+getUserName({
+  firstName: 'Mr.',
+  lastName: 'Oshiro',
+  username: 'hotelowner304'
+})
+
+getUserName({
+  firstName: 'Madeline',
+  username: 'mountainClimber'
+})
+
+// we should keep our typescript code organized. "sections" of code are typically going to be a section for types, a section for classes, and a section for execution
+
