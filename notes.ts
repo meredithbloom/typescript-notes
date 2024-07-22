@@ -342,3 +342,153 @@ const numbers: [number, number] = [6, 4];
 // Call modulo() with spread syntax
 console.log(modulo(...numbers));
 // No error, prints 2
+
+// UNION TYPES
+
+// allows us to combine types, be more flexible with the types of values that a variable can hold without allowing 'any' type
+// i.e. an employee ID variable can be both a string or a number type, so 'any' type would leave room for errors
+
+let ID: string | number;
+// more flexible than single primitive type, but more specific than 'any' type
+ID = '001';
+
+ID = 1;
+
+// unions can be written anywhere a type value is defined, including function parameters
+// using unions in function params is especially useful
+
+function getMarginLeft(margin: string | number) {
+  return { 'marginLeft': margin };
+}
+
+// TYPE NARROWING
+
+// what if we want to use different logic depending on the type of function parameter? i.e. if getMarginLeft wanted to do different things with strings vs numbers
+// we can implement a 'type guard' - a conditional to check if a variable is a certain type
+
+function getMarginRight(margin: string | number) {
+  if (typeof margin === 'string') {
+    return margin.toLowerCase();
+  } else {
+    return margin**2;
+  }
+}
+
+// INFERRED UNION RETURN TYPES - tpyescript will look at the contents of a function and infer which types the function can return
+// if there are multiple return types, typescript will infer a union type
+
+// function getBook() {
+//   try {
+//     return getBookFromServer();
+//   } catch (error) {
+//     return `Something went wrong: ${error}`;
+//   }
+// }
+
+type User = {
+  id: number;
+  username: string;
+};
+
+function createUser() {
+  const randomChance = Math.random() >= 0.5;
+
+  if (randomChance) {
+    return { id: 1, username: 'nikko' };
+  } else {
+    return 'Could not create a user.';
+  }
+}
+
+const userData: User | string = createUser();
+
+
+// UNIONS AND ARRAYS
+// we can use union types to allow for an array with multiple (but not any) types of elements
+
+const dateNumber = new Date().getTime();
+const dateString = new Date().toDateString();
+
+const timesList: (string | number)[] = [dateNumber, dateString];
+
+// another example 
+
+function formatListings(listings: (string | number)[]) {
+  return listings.map((listing) => {
+    if (typeof listing === 'string') {
+      return listing.toUpperCase();
+    }
+
+    if (typeof listing === 'number') {
+      return `$${listing.toLocaleString()}`;
+    }
+  });
+}
+
+const result = formatListings([
+  '123 Main St',
+  226800,
+  '580 Broadway Apt 4a',
+  337900,
+]);
+
+console.log(result);
+
+// COMMON KEY VALUE PAIRS
+// when we put type members in a union, typescript will only allow us to use the common methods and properties that all members of the union share
+
+const batteryStatus: boolean | number = false;
+
+batteryStatus.toString(); // No TypeScript error, as both booleans and numbers have a toString() method
+// batteryStatus.toFixed(2); // TypeScript error, as only numbers have a toFixed() method
+
+// this rule also applies to type objects that we define
+
+type Like = {
+  username: string;
+  displayName: string;
+};
+
+type Share = {
+  username: string;
+  displayName: string;
+};
+
+function getFriendNameFromEvent(event: Like | Share) {
+  return event.displayName || event.username;
+}
+
+const newEvent = {
+  username: 'vkrauss',
+  displayName: 'Veronica Krauss',
+};
+
+const friendName = getFriendNameFromEvent(newEvent);
+
+console.log(`You have an update from ${friendName}.`);
+
+
+// UNIONS WITH LITERAL TYPES
+// we can use literal types with typescript unions
+// these are useful when we want to create distinct states within a program
+
+type Color = 'green' | 'yellow' | 'red';
+
+function changeLight(color: Color) {
+  console.log(color);
+}
+// changeLight('purple') will throw an error because that is not listed as literal type in the Color union
+
+type Status = 'idle'|'downloading'|'complete';
+
+function downloadStatus(status: Status) {
+  if (status === 'idle') {
+    console.log('Download');
+  } else if (status === 'downloading') {
+    console.log('Downloading...');
+  } else if (status === 'complete') {
+    console.log('Your download is complete!');
+  }
+}
+
+downloadStatus('idle');
