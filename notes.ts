@@ -342,3 +342,451 @@ const numbers: [number, number] = [6, 4];
 // Call modulo() with spread syntax
 console.log(modulo(...numbers));
 // No error, prints 2
+
+// UNION TYPES
+
+// allows us to combine types, be more flexible with the types of values that a variable can hold without allowing 'any' type
+// i.e. an employee ID variable can be both a string or a number type, so 'any' type would leave room for errors
+
+let ID: string | number;
+// more flexible than single primitive type, but more specific than 'any' type
+ID = '001';
+
+ID = 1;
+
+// unions can be written anywhere a type value is defined, including function parameters
+// using unions in function params is especially useful
+
+function getMarginLeft(margin: string | number) {
+  return { 'marginLeft': margin };
+}
+
+// TYPE NARROWING
+
+// what if we want to use different logic depending on the type of function parameter? i.e. if getMarginLeft wanted to do different things with strings vs numbers
+// we can implement a 'type guard' - a conditional to check if a variable is a certain type
+
+function getMarginRight(margin: string | number) {
+  if (typeof margin === 'string') {
+    return margin.toLowerCase();
+  } else {
+    return margin**2;
+  }
+}
+
+// INFERRED UNION RETURN TYPES - tpyescript will look at the contents of a function and infer which types the function can return
+// if there are multiple return types, typescript will infer a union type
+
+// function getBook() {
+//   try {
+//     return getBookFromServer();
+//   } catch (error) {
+//     return `Something went wrong: ${error}`;
+//   }
+// }
+
+type User = {
+  id: number;
+  username: string;
+};
+
+function createUser() {
+  const randomChance = Math.random() >= 0.5;
+
+  if (randomChance) {
+    return { id: 1, username: 'nikko' };
+  } else {
+    return 'Could not create a user.';
+  }
+}
+
+const userData: User | string = createUser();
+
+
+// UNIONS AND ARRAYS
+// we can use union types to allow for an array with multiple (but not any) types of elements
+
+const dateNumber = new Date().getTime();
+const dateString = new Date().toDateString();
+
+const timesList: (string | number)[] = [dateNumber, dateString];
+
+// another example 
+
+function formatListings(listings: (string | number)[]) {
+  return listings.map((listing) => {
+    if (typeof listing === 'string') {
+      return listing.toUpperCase();
+    }
+
+    if (typeof listing === 'number') {
+      return `$${listing.toLocaleString()}`;
+    }
+  });
+}
+
+const result = formatListings([
+  '123 Main St',
+  226800,
+  '580 Broadway Apt 4a',
+  337900,
+]);
+
+console.log(result);
+
+// COMMON KEY VALUE PAIRS
+// when we put type members in a union, typescript will only allow us to use the common methods and properties that all members of the union share
+
+const batteryStatus: boolean | number = false;
+
+batteryStatus.toString(); // No TypeScript error, as both booleans and numbers have a toString() method
+// batteryStatus.toFixed(2); // TypeScript error, as only numbers have a toFixed() method
+
+// this rule also applies to type objects that we define
+
+type Like = {
+  username: string;
+  displayName: string;
+};
+
+type Share = {
+  username: string;
+  displayName: string;
+};
+
+function getFriendNameFromEvent(event: Like | Share) {
+  return event.displayName || event.username;
+}
+
+const newEvent = {
+  username: 'vkrauss',
+  displayName: 'Veronica Krauss',
+};
+
+const friendName = getFriendNameFromEvent(newEvent);
+
+console.log(`You have an update from ${friendName}.`);
+
+
+// UNIONS WITH LITERAL TYPES
+// we can use literal types with typescript unions
+// these are useful when we want to create distinct states within a program
+
+type Color = 'green' | 'yellow' | 'red';
+
+function changeLight(color: Color) {
+  console.log(color);
+}
+// changeLight('purple') will throw an error because that is not listed as literal type in the Color union
+
+type Status = 'idle'|'downloading'|'complete';
+
+function downloadStatus(status: Status) {
+  if (status === 'idle') {
+    console.log('Download');
+  } else if (status === 'downloading') {
+    console.log('Downloading...');
+  } else if (status === 'complete') {
+    console.log('Your download is complete!');
+  }
+}
+
+downloadStatus('idle');
+
+
+// TYPE NARROWING
+
+// TYPE GUARDS - a way that typescript can narrow a type by using a conditional check for if a variable is a certain type
+
+function formatStatistic(stat: string | number) {
+  if (typeof stat === 'number') {
+      return stat.toFixed(2);
+  } else if (typeof stat === 'string') {
+    return stat.toUpperCase();
+  }
+}
+
+console.log(formatStatistic('Win'));
+console.log(formatStatistic(0.364));
+
+// Using 'IN' with type guards
+// the 'in' operator checks if a property exists on an object itself or anywhere within its prototype chain
+// this works for more specific type narrowing than just typeof
+
+type Cat = {
+  name: string;
+  run: () => string;
+}
+
+type Fish = {
+  name: string;
+  swim: () => string;
+}
+
+const siameseCat = { 
+  name: 'Proxie', 
+  run: () => 'pitter pat'
+}
+
+const bettaFish = { 
+  name: 'Neptune', 
+  swim: () => 'bubble blub'
+}
+
+// two separate 'if' statements
+function move(pet: Cat | Fish) {
+  if ('run' in pet) {
+    return pet.run();
+  } 
+  if ('swim' in pet) {
+    return pet.swim();
+  }
+}
+
+console.log(move(siameseCat))
+
+// Narrowing with ELSE
+// typescript can recognize the else block of an if/else statement as being the opposite type guard check of the 'if' statement's type guard check
+
+function formatPadding(padding: string | number) {
+  if (typeof padding === 'string') {
+    return padding.toLowerCase();
+  } else {
+    return `${padding}px`;
+  }
+}
+
+// more complex example 
+
+type Pasta = {
+  menuName: string;
+  boil: () => string;
+}
+
+type Meat = {
+  menuName: string;
+  panFry: () => string;
+}
+
+const fettuccine = {
+  menuName: 'Fettuccine',
+  boil: () => 'Heat water to 212 degrees',
+}
+
+const steak = {
+  menuName: 'New York Strip Steak',
+  panFry: () => 'Heat oil to 350 degrees',
+}
+
+function prepareEntree(entree: Pasta | Meat) {
+  if ('boil' in entree) {
+    return entree.boil();
+  } else {
+    return entree.panFry();
+  }
+}
+
+console.log(prepareEntree(fettuccine));
+
+// NARROWING AFTER A TYPE GUARD
+// typescript can type narrow without an else statement, provided that there is a return statement within the type guard
+
+type Tea = {
+  steep: () => string;
+}
+
+type Coffee = {
+  pourOver: () => string;
+} 
+
+function brew(beverage: Coffee | Tea) {
+  if ('steep' in beverage) {
+    return beverage.steep();
+  }
+
+  return beverage.pourOver();
+}
+
+// ADVANCED OBJECT TYPES
+
+// Interfaces and Types
+// interfaces are a way to define a type in typescript
+
+type MailType = {
+  postagePrice: number;
+  address: string;
+}
+
+// very minor syntactical difference - interface does not require an equal sign between the interface name and the object
+// functionality is identical
+// interface can be only be used to type OBJECTS, where 'type' can be used to type objects, primitives, and more
+interface Mail {
+  postagePrice: number;
+  address: string;
+}
+
+// example 
+interface Run {
+  miles: number;
+}
+
+function updateRunGoal(run: Run) {
+  console.log(`
+Miles left:       ${50 - run.miles}
+Percent of goal:  ${(run.miles / 50) * 100}% complete
+  `)
+}
+
+updateRunGoal({
+  miles: 5,
+})
+
+// INTERFACES AND CLASSES
+
+// interface keyword is especially good for adding types to a class (since it is constrained to typed objects)
+// typescript give sus the ability to apply a type to an object/class with the 'implements' keyword
+
+interface Robot {
+  identify: (id: number) => void;
+}
+
+class OneSeries implements Robot {
+  identify(id: number) {
+    console.log(`beep! I'm ${id.toFixed(2)}.`);
+  }
+
+  answerQuestion() {
+    console.log('42!');
+  }
+}
+
+// DEEP TYPES - nested methods and properties
+
+interface Directory {
+  addFile: (name: string) => void;
+  config: Config;
+}
+
+interface DefaultConfig {
+  encoding: string,
+  permissions: string
+}
+
+interface Config {
+  default: DefaultConfig
+}
+
+class DesktopDirectory implements Directory {
+  config = {
+    default: {
+      encoding: 'utf-8',
+      permissions: 'drw-rw-rw-',
+    }
+  }
+
+  addFile(name: string) {
+    console.log(`Adding file: ${name}`);
+  }
+
+  showPreview(name: string) {
+    console.log(`Opening preview of file: ${name}`);
+  }
+}
+
+const Desktop = new DesktopDirectory();
+
+console.log(Desktop.config);
+
+// COMPOSED TYPES
+
+// deeper nested data can become unwieldy to write and read - we want to avoid more than 1-2 levels of nesting
+
+// very nested
+// interface About {
+//   general: {
+//     id: number;
+//     name: string;
+//     version: {
+//       versionNumber: number;
+//     }
+//   }
+// }
+
+// VERSUS
+
+interface About {
+  general: General;
+}
+
+interface General {
+  id: number;
+  name: string;
+  version: Version;
+}
+
+interface Version {
+  versionNumber: number;
+}
+
+// EXTENDING INTERFACES
+
+// 'extends' keyword copies all the type members from one type into another type
+
+interface Shape {
+  color: string;
+}
+
+interface Square extends Shape {
+  sideLength: number;
+}
+
+const mySquare: Square = {sideLength: 10, color: 'blue'};
+
+// INDEX SIGNATURES
+// when we don't know the names of the properties of an object, we can use an index signature to define the type of the object in general
+// i.e. when we get information from an outside data source like an API
+
+// import { getBudgetAsync } from './api';
+
+// interface Budget {
+//   [category: string]: number;
+// }
+
+// async function getBudget() {
+//   const result: Budget = await getBudgetAsync();
+//   console.log(result);
+// }
+
+// getBudget();
+
+
+
+// OPTIONAL TYPE MEMBERS
+
+interface UserNameOptions {
+  username: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+function getUserName(options: UserNameOptions) {
+  if (options.firstName && options.lastName) {
+    return console.log(`${options.firstName} ${options.lastName}`);
+  }
+
+  return console.log(options.username);
+}
+
+getUserName({
+  firstName: 'Mr.',
+  lastName: 'Oshiro',
+  username: 'hotelowner304'
+})
+
+getUserName({
+  firstName: 'Madeline',
+  username: 'mountainClimber'
+})
+
+// we should keep our typescript code organized. "sections" of code are typically going to be a section for types, a section for classes, and a section for execution
+
